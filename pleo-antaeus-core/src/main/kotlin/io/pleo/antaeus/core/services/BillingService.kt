@@ -7,17 +7,17 @@ import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 
 class BillingService(
-    private val paymentProvider: PaymentProvider,
-    private val dal: BillingDal
+        private val paymentProvider: PaymentProvider,
+        private val dal: BillingDal
 ) {
 
-    fun fetchInvoicesByCustomer(id: Int): List<Invoice>{
+    fun fetchInvoicesByCustomer(id: Int): List<Invoice> {
 
         return dal.fetchInvoicesByCustomer(id)
     }
 
-    fun fetchInvoicesByCustomerAndStatus(id: Int, status: InvoiceStatus) {
-
+    fun fetchInvoicesByCustomerAndStatus(id: Int, status: InvoiceStatus): List<Invoice> {
+        return dal.fetchInvoicesByCostumerAndStatus(id, status)
     }
 
 }
