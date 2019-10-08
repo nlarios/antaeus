@@ -25,5 +25,8 @@ fun ResultRow.toInvoice(): Invoice = Invoice(
 fun ResultRow.toCustomer(): Customer = Customer(
     id = this[CustomerTable.id],
     currency = Currency.valueOf(this[CustomerTable.currency]),
-    balance = this[CustomerTable.balance]
+    balance = Money(
+            value = this[InvoiceTable.value],
+            currency = Currency.valueOf(this[InvoiceTable.currency])
+    )
 )

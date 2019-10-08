@@ -2,6 +2,7 @@ package io.pleo.antaeus.core.helpers
 
 import io.pleo.antaeus.models.*
 import java.math.BigDecimal
+import java.sql.Timestamp
 
 fun mockInvoice(
         id: Int = 1,
@@ -27,6 +28,21 @@ fun mockCustomer(
             currency = currency,
             balance = balance
     )
+}
+
+
+fun mockBill(
+        id: Int = 1,
+        customerId: Int = 1,
+        totalAmount: Money = mockMoney(1000.toBigDecimal()),
+        timestamp: Timestamp = Timestamp.valueOf("2018-12-12 01:02:03.123456789")
+): Bill {
+return Bill(
+        id = id,
+        customerId = customerId,
+        totalAmount = totalAmount,
+        timestamp = timestamp
+)
 }
 
 fun mockMoney(
