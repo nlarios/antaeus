@@ -26,11 +26,12 @@ class CustomerDal(private val db: Database) {
         }
     }
 
-    fun createCustomer(currency: Currency): Customer? {
+    fun createCustomer(balance: Money): Customer? {
         val id = transaction(db) {
             // Insert the customer and return its new id.
             CustomerTable.insert {
-                it[this.currency] = currency.toString()
+                it[this.balance] = balance.value
+                it[this.currency] = balance.currency.toString()
             } get CustomerTable.id
         }
 

@@ -1,12 +1,8 @@
-
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerDal
 import io.pleo.antaeus.data.InvoiceDal
-import io.pleo.antaeus.models.Currency
-import io.pleo.antaeus.models.Invoice
-import io.pleo.antaeus.models.InvoiceStatus
-import io.pleo.antaeus.models.Money
+import io.pleo.antaeus.models.*
 import java.math.BigDecimal
 import kotlin.random.Random
 
@@ -14,19 +10,22 @@ import kotlin.random.Random
 internal fun setupInitialData(customerDal: CustomerDal, invoiceDal: InvoiceDal) {
     val customers = (1..100).mapNotNull {
         customerDal.createCustomer(
-            currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
+                balance = Money(
+                        value = BigDecimal(Random.nextDouble(100.0, 5000.0)),
+                        currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
+                )
         )
     }
 
     customers.forEach { customer ->
         (1..10).forEach {
             invoiceDal.createInvoice(
-                amount = Money(
-                    value = BigDecimal(Random.nextDouble(10.0, 500.0)),
-                    currency = customer.currency
-                ),
-                customer = customer,
-                status = if (it == 1) InvoiceStatus.PENDING else InvoiceStatus.PAID
+                    amount = Money(
+                            value = BigDecimal(Random.nextDouble(10.0, 500.0)),
+                            currency = customer.balance.currency
+                    ),
+                    customer = customer,
+                    status = if (it == 1) InvoiceStatus.PENDING else InvoiceStatus.PAID
             )
         }
     }
@@ -35,8 +34,8 @@ internal fun setupInitialData(customerDal: CustomerDal, invoiceDal: InvoiceDal) 
 // This is the mocked instance of the payment provider
 internal fun getPaymentProvider(): PaymentProvider {
     return object : PaymentProvider {
-        override fun charge(invoice: Invoice): Boolean {
-                return Random.nextBoolean()
+        override fun charge(invoice: Invoice, customer: Customer): Boolean {
+            return Random.nextBoolean()
         }
     }
 }

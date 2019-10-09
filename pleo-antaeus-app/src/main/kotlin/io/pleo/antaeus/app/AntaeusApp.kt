@@ -56,7 +56,7 @@ fun main() {
     val customerService = CustomerService(dal = customerDal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal)
+    val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService)
 
     // Create REST web service
     AntaeusRest(

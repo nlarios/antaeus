@@ -18,5 +18,6 @@ object InvoiceTable : Table() {
 object CustomerTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val currency = varchar("currency", 3)
-    val balance = integer("balance")
+    val balance = decimal("value", 1000, 2)
+
 }
