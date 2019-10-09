@@ -1,4 +1,4 @@
-package io.pleo.antaeus.core.utils
+package io.pleo.antaeus.core.providers
 
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.data.AntaeusDal
@@ -14,6 +14,7 @@ class BillingPaymentProvider(): PaymentProvider {
 
     override fun charge(invoice: Invoice, customer: Customer): Boolean {
 
+//        if (customer.balance.value)
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

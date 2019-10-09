@@ -2,18 +2,13 @@ package io.pleo.antaeus.core.services
 
 import io.mockk.every
 import io.mockk.mockk
-import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
 import io.pleo.antaeus.core.helpers.mockInvoice
-import io.pleo.antaeus.core.utils.BillingPaymentProvider
-import io.pleo.antaeus.data.AntaeusDal
+import io.pleo.antaeus.core.helpers.mockMoney
+import io.pleo.antaeus.core.providers.BillingPaymentProvider
 import io.pleo.antaeus.data.BillingDal
 import io.pleo.antaeus.data.CustomerDal
-import io.pleo.antaeus.models.Bill
-import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertThrows
 
 class BillingServiceTest {
 
@@ -36,26 +31,26 @@ class BillingServiceTest {
 
     @Test
     fun `will throw if invoice list for costumer is empty`() {
-//        assertThrows<InvoiceNotFoundException> {
-//            billingService.fetchInvoicesByCustomer(404)
-//        }
-        assert(billingService.fetchInvoicesByCustomer(404).isEmpty()){ "Invoice by Costumer with id 404 did not found" }
+
+        assert(billingService.fetchInvoicesByCustomer(404).isEmpty()) { "Invoice by Costumer with id 404 did not found" }
     }
 
     @Test
     fun `get all invoices of users`() {
         val actualInvoices = billingService.fetchInvoicesByCustomer(1)
-        assert(expectedInvoices == actualInvoices){
+        assert(expectedInvoices == actualInvoices) {
             "Fetching Invoices of specific Customer failed"
         }
     }
 
-
     @Test
     fun `calculate billing of a customer`() {
+        var invoices = listOf(mockInvoice())
+        val expectedBillingAmount = mockMoney((10000).toBigDecimal())
 
-//        Bill bill = billingService.
-        assert(false)
+        assert(billingService.calculateSumOfInvoices(invoices).equals(expectedBillingAmount)) {
+            "Calculate total billing of a customer failed"
+        }
     }
 
     @Test
