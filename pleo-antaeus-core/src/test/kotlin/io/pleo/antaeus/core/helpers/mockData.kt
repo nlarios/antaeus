@@ -25,7 +25,6 @@ fun mockCustomer(
 ): Customer {
     return Customer(
             id = id,
-            currency = currency,
             balance = balance
     )
 }
