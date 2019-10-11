@@ -1,6 +1,9 @@
 package io.pleo.antaeus.core.schedulers
 
+import io.pleo.antaeus.models.Bill
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.concurrent.schedule
 import java.util.Calendar
@@ -9,16 +12,13 @@ import java.util.Calendar
 class BillingServiceScheduler() {
 
 
-    fun scheduleNextBillingTime(billingAction: () -> Unit) {
-
-        Timer("SettingUpBilling", false).schedule(time = calculateNextBillingDate()) {
-            billingAction
-            val nextTime = calculateNextBillingDate()
-            Timer("SettingUpNextBilling", false).schedule(time = nextTime) {
-                scheduleNextBillingTime(billingAction)
-            }
+    fun scheduleNextBillingTime(billingAction: ((Int, timestamp: String) -> Bill?), id: Int, date: Date = calculateNextBillingDate()) {
+//        var nextTime = calculateNextBillingDate()
+        var date = calculateTestDate()
+        Timer("SettingUpBillingSchedule", false).schedule(time = date) {
+            billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+            scheduleNextBillingTime(billingAction, id)
         }
-
     }
 
     fun calculateNextBillingDate(): Date {
@@ -35,6 +35,18 @@ class BillingServiceScheduler() {
 
         return calendar.time
     }
+
+    fun calculateTestDate(): Date {
+        val calendar = Calendar.getInstance()
+        val unroundedMinutes = calendar.get(Calendar.MINUTE)
+        // mod = unroundedMinutes % 10
+        calendar.add(Calendar.MINUTE, 1)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        println(calendar.time)
+        return calendar.time
+    }
+
 
 }
 //        CoroutineScope {

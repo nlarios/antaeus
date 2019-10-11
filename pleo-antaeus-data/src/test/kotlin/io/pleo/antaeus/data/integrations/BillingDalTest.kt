@@ -19,8 +19,8 @@ import java.sql.Connection
 
 class BillingDalIntegrationTest {
 
-    val db:Database
-    val expectedBill = Bill()
+    private val db:Database
+    private val expectedBill = Bill(1, 1, Money(value=240.00.toBigDecimal(), currency= Currency.DKK),"2019-10-11T17:31:41.205513800Z")
 
     init {
         val tables = arrayOf(InvoiceTable, CustomerTable, BillTable)
