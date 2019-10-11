@@ -6,23 +6,17 @@ import kotlin.concurrent.schedule
 import java.util.Calendar
 
 
-
-class BillingServiceScheduler () {
-
-//    inline fun Timer.schedule(
-//            time: Date,
-//            period: Long,
-//            crossinline action: TimerTask.() -> Unit
-//    ): TimerTask {
-//
-//    }
+class BillingServiceScheduler() {
 
 
-    fun scheduleNextBillingTime( billingAction: ()->Unit) {
+    fun scheduleNextBillingTime(billingAction: () -> Unit) {
 
-
-        Timer("SettingUp", false).schedule(500) {
+        Timer("SettingUpBilling", false).schedule(time = calculateNextBillingDate()) {
             billingAction
+            val nextTime = calculateNextBillingDate()
+            Timer("SettingUpNextBilling", false).schedule(time = nextTime) {
+                scheduleNextBillingTime(billingAction)
+            }
         }
 
     }

@@ -1,14 +1,25 @@
 package io.pleo.antaeus.data
 
+import io.pleo.antaeus.models.Bill
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
-import org.jetbrains.exposed.sql.Database
+import io.pleo.antaeus.models.Money
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 
 class BillingDal(private val db: Database) {
+
+    fun fetchBill(id: Int): Bill? {
+        return transaction(db) {
+            BillTable
+                    .select { BillTable.id.eq(id) }
+                    .firstOrNull()
+                    ?.toBill()
+        }
+    }
+
     fun fetchInvoicesByCustomer(id: Int): List<Invoice> {
         return transaction(db) {
             InvoiceTable
@@ -17,11 +28,17 @@ class BillingDal(private val db: Database) {
         }
     }
 
-    fun fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus): List<Invoice> {
-        return transaction(db) {
-            InvoiceTable
-                    .select { InvoiceTable.customerId.eq(id) and InvoiceTable.status.eq(status.toString())}
-                    .map { it.toInvoice() }
+    fun createBill(customerId: Int, totalAmount: Money, timestamp: String): Bill? {
+        val id = transaction(db) {
+            // Insert the bill and return its new id.
+            BillTable.insert {
+                it[this.customerId] = customerId
+                it[this.value] = totalAmount.value
+                it[this.currency] = totalAmount.currency.toString()
+                it[this.timestamp] = timestamp
+            } get BillTable.id
         }
+        print(id)
+        return fetchBill(id!!)
     }
 }

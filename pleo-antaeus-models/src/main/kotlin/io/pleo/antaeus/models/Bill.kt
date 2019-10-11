@@ -6,5 +6,5 @@ data class Bill (
     val id: Int,
     val customerId: Int,
     val totalAmount: Money,
-    val timestamp: Timestamp
+    val timestamp: String
 )

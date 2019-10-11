@@ -4,11 +4,8 @@ import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.Money
-import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class InvoiceDal(private val db: Database) {
@@ -36,6 +33,14 @@ class InvoiceDal(private val db: Database) {
             InvoiceTable
                 .select { InvoiceTable.customerId.eq(id) }
                 .map { it.toInvoice() }
+        }
+    }
+
+    fun fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus): List<Invoice> {
+        return transaction(db) {
+            InvoiceTable
+                    .select { InvoiceTable.customerId.eq(id) and InvoiceTable.status.eq(status.toString()) }
+                    .map { it.toInvoice() }
         }
     }
 

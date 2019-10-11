@@ -24,7 +24,7 @@ import java.sql.Connection
 
 fun main() {
     // The tables to create in the database.
-    val tables = arrayOf(InvoiceTable, CustomerTable)
+    val tables = arrayOf(InvoiceTable, CustomerTable, BillTable)
 
     // Connect to the database and create the needed tables. Drop any existing data.
     val db = Database
@@ -56,7 +56,7 @@ fun main() {
     val customerService = CustomerService(dal = customerDal)
 
     // This is _your_ billing service to be included where you see fit
-    val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService)
+    val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService, invoiceService = invoiceService)
 
     // Create REST web service
     AntaeusRest(

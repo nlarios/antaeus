@@ -8,7 +8,7 @@ fun mockInvoice(
         id: Int = 1,
         customerId: Int = 1,
         amount: Money = mockMoney(),
-        status: InvoiceStatus = InvoiceStatus.PAID
+        status: InvoiceStatus = InvoiceStatus.PENDING
 ): Invoice {
     return Invoice(
             id = id,
@@ -34,7 +34,7 @@ fun mockBill(
         id: Int = 1,
         customerId: Int = 1,
         totalAmount: Money = mockMoney(1000.toBigDecimal()),
-        timestamp: Timestamp = Timestamp.valueOf("2018-12-12 01:02:03.123456789")
+        timestamp: String = "2018-12-12 01:02:03.123456789"
 ): Bill {
 return Bill(
         id = id,
@@ -45,7 +45,7 @@ return Bill(
 }
 
 fun mockMoney(
-        value: BigDecimal = 100.toBigDecimal(),
+        value: BigDecimal = 1000.toBigDecimal(),
         currency: Currency = Currency.EUR
 ): Money {
     return Money(

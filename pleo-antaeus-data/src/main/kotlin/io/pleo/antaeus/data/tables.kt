@@ -21,3 +21,11 @@ object CustomerTable : Table() {
     val balance = decimal("value", 1000, 2)
 
 }
+
+object BillTable : Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val customerId = reference("customer_id", CustomerTable.id)
+    val value = decimal("value", 1000, 2)
+    val currency = varchar("currency", 3)
+    val timestamp = text("timestamp")
+}

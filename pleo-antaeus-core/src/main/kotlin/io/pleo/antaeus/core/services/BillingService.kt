@@ -1,36 +1,39 @@
 package io.pleo.antaeus.core.services
 
 import io.pleo.antaeus.core.external.PaymentProvider
+import io.pleo.antaeus.core.schedulers.BillingServiceScheduler
 import io.pleo.antaeus.core.utils.convertCurrency
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.BillingDal
-import io.pleo.antaeus.models.Currency
-import io.pleo.antaeus.models.Invoice
-import io.pleo.antaeus.models.InvoiceStatus
-import io.pleo.antaeus.models.Money
+import io.pleo.antaeus.models.*
+import java.sql.Timestamp
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.util.concurrent.RunnableScheduledFuture
 
 class BillingService(
         private val paymentProvider: PaymentProvider,
         private val dal: BillingDal,
-        private val customerService: CustomerService
+        private val customerService: CustomerService,
+        private val invoiceService: InvoiceService
 ) {
 
+    fun scheduleBillingForCustomer(id: Int, billingServiceScheduler: BillingServiceScheduler) {
 
-    fun billCustomer(id: Int) {
-        var customer = customerService.fetch(id)
-        var invoices = fetchInvoicesByCustomerAndStatus(id, InvoiceStatus.PENDING)
+        billingServiceScheduler.scheduleNextBillingTime { billCustomer(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now())) }
+    }
+
+    fun billCustomer(id: Int, timestamp: String): Bill? {
+        val customer = customerService.fetch(id)
+        var invoices = invoiceService.fetchInvoicesByCustomerAndStatus(id, InvoiceStatus.PENDING)
         invoices = invoices.filter { invoice -> paymentProvider.charge(invoice = invoice, customer = customer) }
         var totalAmount = calculateSumOfInvoices(invoices)
-
+        var bill = dal.createBill(customerId = customer.id, totalAmount = totalAmount, timestamp = timestamp)
+        print(bill)
+        return bill
     }
 
-    fun fetchInvoicesByCustomer(id: Int): List<Invoice> {
-        return dal.fetchInvoicesByCustomer(id)
-    }
-
-    fun fetchInvoicesByCustomerAndStatus(id: Int, status: InvoiceStatus): List<Invoice> {
-        return dal.fetchInvoicesByCostumerAndStatus(id, status)
-    }
 
 
     fun calculateSumOfInvoices(invoices: List<Invoice>): Money {
