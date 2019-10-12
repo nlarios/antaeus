@@ -20,13 +20,15 @@ class BillingDal(private val db: Database) {
         }
     }
 
-    fun fetchInvoicesByCustomer(id: Int): List<Invoice> {
+    fun fetchAllBills(): List<Bill> {
         return transaction(db) {
             InvoiceTable
-                    .select { InvoiceTable.customerId.eq(id) }
-                    .map { it.toInvoice() }
+                    .selectAll()
+                    .map { it.toBill() }
         }
     }
+
+
 
     fun createBill(customerId: Int, totalAmount: Money, timestamp: String): Bill? {
         val id = transaction(db) {

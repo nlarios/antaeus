@@ -20,11 +20,11 @@ object ExchangeRateProvider {
 
     private fun setRates(currency: Currency): BigDecimal {
         return when (currency) {
-            Currency.EUR -> 0.12.toBigDecimal()
+            Currency.EUR -> 0.13.toBigDecimal()
 
             Currency.DKK -> 1.00.toBigDecimal()
 
-            Currency.GBP -> 0.13.toBigDecimal()
+            Currency.GBP -> 0.12.toBigDecimal()
 
             Currency.SEK -> 1.46.toBigDecimal()
 

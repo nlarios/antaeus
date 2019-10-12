@@ -36,9 +36,9 @@ class BillingServiceTest {
         every { fetchInvoicesByCustomerAndStatus(1, InvoiceStatus.PENDING) } returns expectedInvoices
     }
 
-    private val paymentProvider = BillingPaymentProvider()
 
     private val customerService = CustomerService(customerDal)
+    private val paymentProvider = BillingPaymentProvider(customerService)
 
     private val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService, invoiceService = invoiceService)
 

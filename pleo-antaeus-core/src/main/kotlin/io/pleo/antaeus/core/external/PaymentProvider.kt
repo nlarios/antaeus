@@ -26,4 +26,5 @@ interface PaymentProvider {
      */
 
     fun charge(invoice: Invoice, customer:Customer): Boolean
+
 }

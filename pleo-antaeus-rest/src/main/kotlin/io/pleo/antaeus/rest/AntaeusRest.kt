@@ -107,18 +107,27 @@ class AntaeusRest (
                        }
                    }
 
-                   path("billings") {
-                       // URL: /rest/v1/customers
+                   path("billings/customers") {
+                       //start billing of all customers
+                       post{
+                           billingService.scheduleBillingForAllCustomers(scheduler)
+                           it.json(HttpStatus.ACCEPTED_202)
+                       }
+                       // URL: /rest/v2/billings/customers
                        post(":id") {
-                           println("something")
                            billingService.scheduleBillingForCustomer(it.pathParam("id").toInt(), scheduler)
                            it.json(HttpStatus.ACCEPTED_202)
                        }
-
-                       // URL: /rest/v1/customers/{:id}
-                       get(":id") {
-//                           it.json(billingService.fetch(it.pathParam("id").toInt()))
+                       get{
+                           billingService.fetchAllBills()
+                           it.json(HttpStatus.ACCEPTED_202)
                        }
+                       // URL: /rest/v1/customers
+                       get(":id") {
+                           billingService.fetchBill(it.pathParam("id").toInt())
+                           it.json(HttpStatus.ACCEPTED_202)
+                       }
+
                    }
                }
 

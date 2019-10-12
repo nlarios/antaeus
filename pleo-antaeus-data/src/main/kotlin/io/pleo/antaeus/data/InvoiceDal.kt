@@ -14,25 +14,25 @@ class InvoiceDal(private val db: Database) {
         return transaction(db) {
             // Returns the first invoice with matching id.
             InvoiceTable
-                .select { InvoiceTable.id.eq(id) }
-                .firstOrNull()
-                ?.toInvoice()
+                    .select { InvoiceTable.id.eq(id) }
+                    .firstOrNull()
+                    ?.toInvoice()
         }
     }
 
     fun fetchInvoices(): List<Invoice> {
         return transaction(db) {
             InvoiceTable
-                .selectAll()
-                ?.map { it.toInvoice() }
+                    .selectAll()
+                    .map { it.toInvoice() }
         }
     }
 
     fun fetchInvoicesByCustomer(id: Int): List<Invoice> {
         return transaction(db) {
             InvoiceTable
-                .select { InvoiceTable.customerId.eq(id) }
-                .map { it.toInvoice() }
+                    .select { InvoiceTable.customerId.eq(id) }
+                    .map { it.toInvoice() }
         }
     }
 
@@ -48,14 +48,24 @@ class InvoiceDal(private val db: Database) {
         val id = transaction(db) {
             // Insert the invoice and returns its new id.
             InvoiceTable
-                .insert {
-                    it[this.value] = amount.value
-                    it[this.currency] = amount.currency.toString()
-                    it[this.status] = status.toString()
-                    it[this.customerId] = customer.id
-                } get InvoiceTable.id
+                    .insert {
+                        it[this.value] = amount.value
+                        it[this.currency] = amount.currency.toString()
+                        it[this.status] = status.toString()
+                        it[this.customerId] = customer.id
+                    } get InvoiceTable.id
         }
 
         return fetchInvoice(id!!)
+    }
+
+    fun updateInvoice(invoice: Invoice) {
+        transaction(db) {
+            InvoiceTable
+                    .update({ InvoiceTable.id eq invoice.id }) {
+                        it[this.status] = invoice.status.toString()
+                    }
+        }
+
     }
 }

@@ -11,11 +11,20 @@ import java.util.Calendar
 
 class BillingServiceScheduler() {
 
+    fun scheduleNextBillingTime(billingAction: (() -> Unit?),  date: Date = calculateNextBillingDate()) {
+
+        Timer("SettingUpBillingSchedule", false).schedule(time = date) {
+            println("IM in schedule")
+            billingAction()
+            scheduleNextBillingTime(billingAction)
+        }
+    }
 
     fun scheduleNextBillingTime(billingAction: ((Int, timestamp: String) -> Bill?), id: Int, date: Date = calculateNextBillingDate()) {
 //        var nextTime = calculateNextBillingDate()
-        var date = calculateTestDate()
+//        var date = calculateTestDate()
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
+
             billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
             scheduleNextBillingTime(billingAction, id)
         }

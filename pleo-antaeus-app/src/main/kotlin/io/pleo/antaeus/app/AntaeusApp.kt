@@ -60,8 +60,10 @@ fun main() {
     val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService, invoiceService = invoiceService)
 
     val scheduler = BillingServiceScheduler()
+
+    //initiate billing of all customers
+    billingService.scheduleBillingForAllCustomers(scheduler)
     // Create REST web service
-    println("AAAAAAAAAAAA")
     AntaeusRest(
             invoiceService = invoiceService,
             customerService = customerService,

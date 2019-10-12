@@ -5,7 +5,6 @@
 package io.pleo.antaeus.core.services
 
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerDal
 import io.pleo.antaeus.models.Customer
 
@@ -16,5 +15,9 @@ class CustomerService(private val dal: CustomerDal) {
 
     fun fetch(id: Int): Customer {
         return dal.fetchCustomer(id) ?: throw CustomerNotFoundException(id)
+    }
+
+    fun updateCustomer(customer: Customer) {
+        return dal.updateCustomer(customer)
     }
 }

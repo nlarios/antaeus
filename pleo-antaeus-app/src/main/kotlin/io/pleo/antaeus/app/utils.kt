@@ -1,5 +1,4 @@
 import io.pleo.antaeus.core.external.PaymentProvider
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerDal
 import io.pleo.antaeus.data.InvoiceDal
 import io.pleo.antaeus.models.*
@@ -11,7 +10,7 @@ internal fun setupInitialData(customerDal: CustomerDal, invoiceDal: InvoiceDal) 
     val customers = (1..100).mapNotNull {
         customerDal.createCustomer(
                 balance = Money(
-                        value = BigDecimal(Random.nextDouble(100.0, 5000.0)),
+                        value = BigDecimal(Random.nextDouble(1000.0, 50000.0)),
                         currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
                 )
         )

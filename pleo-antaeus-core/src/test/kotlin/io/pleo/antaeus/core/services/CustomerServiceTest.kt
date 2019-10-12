@@ -3,7 +3,6 @@ package io.pleo.antaeus.core.services
 import io.mockk.every
 import io.mockk.mockk
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
-import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerDal
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
