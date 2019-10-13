@@ -5,6 +5,7 @@
 package io.pleo.antaeus.rest
 
 import io.javalin.Javalin
+import io.javalin.RequestLogger
 import io.javalin.apibuilder.ApiBuilder.*
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.schedulers.BillingServiceScheduler
@@ -14,14 +15,16 @@ import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
 import org.eclipse.jetty.http.HttpStatus
 import java.net.http.HttpResponse
+import java.util.logging.Logger
 
 private val logger = KotlinLogging.logger {}
 
-class AntaeusRest (
-    private val invoiceService: InvoiceService,
-    private val customerService: CustomerService,
-    private val billingService: BillingService,
-    private val scheduler: BillingServiceScheduler
+
+class AntaeusRest(
+        private val invoiceService: InvoiceService,
+        private val customerService: CustomerService,
+        private val billingService: BillingService,
+        private val scheduler: BillingServiceScheduler
 ) : Runnable {
 
     override fun run() {
@@ -30,109 +33,122 @@ class AntaeusRest (
 
     // Set up Javalin rest app
     private val app = Javalin
-        .create()
-        .apply {
-            // InvoiceNotFoundException: return 404 HTTP status code
-            exception(EntityNotFoundException::class.java) { _, ctx ->
-                ctx.status(404)
+            .create()
+            .apply {
+                // InvoiceNotFoundException: return 404 HTTP status code
+                exception(EntityNotFoundException::class.java) { _, ctx ->
+                    ctx.status(404)
+                }
+                // Unexpected exception: return HTTP 500
+                exception(Exception::class.java) { e, _ ->
+                    logger.error(e) { "Internal server error" }
+                }
+                // On 404: return message
+                error(404) { ctx -> ctx.json("not found") }
             }
-            // Unexpected exception: return HTTP 500
-            exception(Exception::class.java) { e, _ ->
-                logger.error(e) { "Internal server error" }
-            }
-            // On 404: return message
-            error(404) { ctx -> ctx.json("not found") }
-        }
 
     init {
         // Set up URL endpoints for the rest app
         app.routes {
-           path("rest") {
-               // Route to check whether the app is running
-               // URL: /rest/health
-               get("health") {
-                   it.json("ok")
-               }
+            path("rest") {
+                // Route to check whether the app is running
+                // URL: /rest/health
+                get("health") {
+                    it.json("ok")
+                }
 
-               // V1
-               path("v1") {
-                   path("invoices") {
-                       // URL: /rest/v1/invoices
-                       get {
-                           it.json(invoiceService.fetchAll())
-                       }
+                // V1
+                path("v1") {
+                    path("invoices") {
+                        // URL: /rest/v1/invoices
+                        get {
+                            it.json(invoiceService.fetchAll())
+                        }
 
-                       // URL: /rest/v1/invoices/{:id}
-                       get(":id") {
-                          it.json(invoiceService.fetch(it.pathParam("id").toInt()))
-                       }
-                   }
+                        // URL: /rest/v1/invoices/{:id}
+                        get(":id") {
+                            it.json(invoiceService.fetch(it.pathParam("id").toInt()))
+                        }
+                    }
 
-                   path("customers") {
-                       // URL: /rest/v1/customers
-                       get {
-                           it.json(customerService.fetchAll())
-                       }
+                    path("customers") {
+                        // URL: /rest/v1/customers
+                        get {
+                            it.json(customerService.fetchAll())
+                        }
+                        // URL: /rest/v1/customers/{:id}
+                        get(":id") {
+                            it.json(customerService.fetch(it.pathParam("id").toInt()))
+                        }
+                    }
+                }
+                //V2
+                path("v2") {
+                    path("invoices") {
+                        // URL: /rest/v1/invoices
+                        get {
+                            it.json(invoiceService.fetchAll())
+                        }
 
-                       // URL: /rest/v1/customers/{:id}
-                       get(":id") {
-                           it.json(customerService.fetch(it.pathParam("id").toInt()))
-                       }
-                   }
-               }
+                        // URL: /rest/v1/invoices/{:id}
+                        get(":id") {
+                            it.json(invoiceService.fetch(it.pathParam("id").toInt()))
+                        }
+                    }
 
-               //V2
-               path("v2") {
-                   path("invoices") {
-                       // URL: /rest/v1/invoices
-                       get {
-                           it.json(invoiceService.fetchAll())
-                       }
+                    path("customers") {
+                        // URL: /rest/v1/customers
+                        get {
+                            it.json(customerService.fetchAll())
+                        }
 
-                       // URL: /rest/v1/invoices/{:id}
-                       get(":id") {
-                           it.json(invoiceService.fetch(it.pathParam("id").toInt()))
-                       }
-                   }
+                        // URL: /rest/v1/customers/{:id}
+                        get(":id") {
+                            it.json(customerService.fetch(it.pathParam("id").toInt()))
+                        }
+                    }
+                    path("payments") {
+                        post {
+                            billingService.scheduleBillingForAllCustomers(scheduler)
+                            it.json(HttpStatus.ACCEPTED_202)
+                        }
+                        post(":id") {
+                            billingService.scheduleBillingForCustomer(it.pathParam("id").toInt(), scheduler)
+                            it.json(HttpStatus.ACCEPTED_202)
+                        }
+                    }
 
-                   path("customers") {
-                       // URL: /rest/v1/customers
-                       get {
-                           it.json(customerService.fetchAll())
-                       }
+                    path("billings") {
+                        //start billing of all customers
 
-                       // URL: /rest/v1/customers/{:id}
-                       get(":id") {
-                           it.json(customerService.fetch(it.pathParam("id").toInt()))
-                       }
-                   }
+                        // URL: /rest/v2/billings/customers
+                        get {
+                            it.json(billingService.fetchAllBillings())
+                        }
+                        // URL: /rest/v1/customers
+                        get(":id") {
 
-                   path("billings/customers") {
-                       //start billing of all customers
-                       post{
-                           billingService.scheduleBillingForAllCustomers(scheduler)
-                           it.json(HttpStatus.ACCEPTED_202)
-                       }
-                       // URL: /rest/v2/billings/customers
-                       post(":id") {
-                           billingService.scheduleBillingForCustomer(it.pathParam("id").toInt(), scheduler)
-                           it.json(HttpStatus.ACCEPTED_202)
-                       }
-                       get{
-                           billingService.fetchAllBills()
-                           it.json(HttpStatus.ACCEPTED_202)
-                       }
-                       // URL: /rest/v1/customers
-                       get(":id") {
-                           billingService.fetchBill(it.pathParam("id").toInt())
-                           it.json(HttpStatus.ACCEPTED_202)
-                       }
+                            it.json(billingService.fetchBilling(it.pathParam("id").toInt()))
+                        }
 
-                   }
-               }
+                    }
+                }
+
+                path("test") {
+                    path("payment") {
+                        post {
+                            billingService.scheduleBillingForAllCustomers(scheduler)
+                            it.json(HttpStatus.ACCEPTED_202)
+                        }
+                        post(":id") {
+                            billingService.scheduleBillingForCustomer(it.pathParam("id").toInt(), scheduler)
+                            it.json(HttpStatus.ACCEPTED_202)
+                        }
+                    }
+                }
 
 
-           }
+            }
         }
     }
 }

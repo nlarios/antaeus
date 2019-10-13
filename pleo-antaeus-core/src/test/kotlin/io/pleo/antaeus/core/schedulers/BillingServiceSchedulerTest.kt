@@ -4,9 +4,12 @@ import io.mockk.mockk
 import io.pleo.antaeus.core.services.BillingService
 import org.junit.jupiter.api.Test
 import java.text.SimpleDateFormat
+import java.time.Clock
 import java.util.*
 import java.util.Calendar
-
+import java.time.ZoneId
+import java.time.Clock.fixed
+import java.time.Instant
 
 
 class BillingServiceSchedulerTest {
@@ -25,7 +28,16 @@ class BillingServiceSchedulerTest {
         calendar.add(Calendar.MINUTE, if (mod == 0) 10 else 10 - mod)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
-        billingServiceScheduler.scheduleNextBillingTime({ print("I m the scheduled task")}, calendar.time)
+        billingServiceScheduler.scheduleNextBillingTime({ print("I m the scheduled task")}, calculateTestDate())
+
+    }
+
+    @Test
+    fun `test scheduled billing`(){
+        val instantExpected = "2014-12-22T10:15:30Z"
+        val clock = Clock.fixed(Instant.parse(instantExpected), ZoneId.of("UTC"))
+
+        val instant = Instant.now(clock)
 
     }
 
@@ -37,4 +49,16 @@ class BillingServiceSchedulerTest {
             "Next billing date calculation failed"
         }
     }
+
+    fun calculateTestDate(): Date {
+        val calendar = Calendar.getInstance()
+        val unroundedMinutes = calendar.get(Calendar.MINUTE)
+        // mod = unroundedMinutes % 10
+        calendar.add(Calendar.MINUTE, 1)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+//        println(calendar.time)
+        return calendar.time
+    }
+
 }

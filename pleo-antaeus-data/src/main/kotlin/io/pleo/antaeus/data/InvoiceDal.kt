@@ -59,13 +59,13 @@ class InvoiceDal(private val db: Database) {
         return fetchInvoice(id!!)
     }
 
-    fun updateInvoice(invoice: Invoice) {
+    fun updateInvoice(invoice: Invoice): Invoice? {
         transaction(db) {
             InvoiceTable
                     .update({ InvoiceTable.id eq invoice.id }) {
                         it[this.status] = invoice.status.toString()
                     }
         }
-
+        return fetchInvoice(invoice.id!!)
     }
 }

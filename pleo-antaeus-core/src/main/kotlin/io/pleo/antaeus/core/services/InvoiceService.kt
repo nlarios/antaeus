@@ -26,7 +26,7 @@ class InvoiceService(private val dal: InvoiceDal) {
         return dal.fetchInvoicesByCostumerAndStatus(id, status)
     }
 
-    fun payInvoice(invoice: Invoice) {
+    fun payInvoice(invoice: Invoice): Invoice? {
         invoice.status = InvoiceStatus.PAID
         return dal.updateInvoice(invoice)
     }

@@ -7,6 +7,9 @@ import io.pleo.antaeus.core.helpers.mockCustomer
 import io.pleo.antaeus.core.helpers.mockInvoice
 import io.pleo.antaeus.core.providers.BillingPaymentProvider
 import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.InvoiceService
+import io.pleo.antaeus.models.Invoice
+import io.pleo.antaeus.models.InvoiceStatus
 import org.junit.jupiter.api.Test
 
 class BillingPaymentProviderTest {
@@ -14,18 +17,19 @@ class BillingPaymentProviderTest {
     private val invoice = mockInvoice()
 
     private val customerService = mockk<CustomerService> {
-//        every {  }
+        every { updateCustomer(customer) }
     }
 
-    val paymentProvider = BillingPaymentProvider(customerService)
+    private val invoiceService = mockk<InvoiceService> {
+        every { payInvoice(invoice) } returns mockInvoice(status = InvoiceStatus.PAID)
+    }
+
+    private val paymentProvider = BillingPaymentProvider(customerService, invoiceService)
 
     @Test
-    fun `check paymentProvide`(){
+    fun `check paymentProvider charging`(){
         var before = customer.balance.value
-        println("customer balance before: ${customer.balance.value}")
-
         paymentProvider.charge(invoice, customer)
-        println("customer balance after: ${customer.balance.value}")
         assert(customer.balance.value < before) {
             "Customer didn't charged"
         }

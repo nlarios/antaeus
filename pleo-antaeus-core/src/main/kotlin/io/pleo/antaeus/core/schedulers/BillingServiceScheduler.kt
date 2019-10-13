@@ -1,6 +1,8 @@
 package io.pleo.antaeus.core.schedulers
 
-import io.pleo.antaeus.models.Bill
+import io.pleo.antaeus.core.exceptions.BillingServiceException
+import io.pleo.antaeus.models.Billing
+import mu.KotlinLogging
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -10,21 +12,35 @@ import java.util.Calendar
 
 
 class BillingServiceScheduler() {
+    companion object {
+        private val logger = KotlinLogging.logger {}
+    }
+
 
     fun scheduleNextBillingTime(billingAction: (() -> Unit?),  date: Date = calculateNextBillingDate()) {
-
+//        var next  = calculateTestDate()
+        logger.info("Schedule next payment for all users at $date")
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
-            println("IM in schedule")
-            billingAction()
-            scheduleNextBillingTime(billingAction)
+
+            try {
+                billingAction()
+            }
+            catch (e: Exception) {
+                logger.error("billingAction failed with exception: ${e.message}")
+                throw BillingServiceException("At multiple customers")
+            }
+            finally {
+                scheduleNextBillingTime(billingAction)
+            }
         }
     }
 
-    fun scheduleNextBillingTime(billingAction: ((Int, timestamp: String) -> Bill?), id: Int, date: Date = calculateNextBillingDate()) {
+    fun scheduleNextBillingTime(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
 //        var nextTime = calculateNextBillingDate()
 //        var date = calculateTestDate()
-        Timer("SettingUpBillingSchedule", false).schedule(time = date) {
+        logger.info("Schedule next payment for user with id: $id at $date")
 
+        Timer("SettingUpBillingSchedule", false).schedule(time = date) {
             billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
             scheduleNextBillingTime(billingAction, id)
         }
@@ -52,34 +68,7 @@ class BillingServiceScheduler() {
         calendar.add(Calendar.MINUTE, 1)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
-        println(calendar.time)
+        //println(calendar.time)
         return calendar.time
     }
-
-
 }
-//        CoroutineScope {
-//    private val job = Job()
-//
-//    private val singleThreadExecutor = Executors.newSingleThreadExecutor()
-//
-//    override val coroutineContext: CoroutineContext
-//        get() = job + singleThreadExecutor.asCoroutineDispatcher()
-//
-//
-//    fun stop() {
-//        job.cancel()
-//        singleThreadExecutor.shutdown()
-//    }
-//
-//    fun start() = launch {
-//        initialDelay?.let {
-//            delay(it)
-//        }
-//        while (isActive) {
-//            service.produce()
-//            delay(interval)
-//        }
-//        println("coroutine done")
-//    }
-//}

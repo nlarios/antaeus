@@ -22,7 +22,7 @@ object CustomerTable : Table() {
 
 }
 
-object BillTable : Table() {
+object BillingTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val customerId = reference("customer_id", CustomerTable.id)
     val value = decimal("value", 1000, 2)

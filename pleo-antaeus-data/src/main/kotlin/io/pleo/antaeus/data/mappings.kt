@@ -26,14 +26,14 @@ fun ResultRow.toCustomer(): Customer = Customer(
         )
 )
 
-fun ResultRow.toBill(): Bill = Bill(
-        id = this[BillTable.id],
-        customerId = this[BillTable.customerId],
+fun ResultRow.toBilling(): Billing = Billing(
+        id = this[BillingTable.id],
+        customerId = this[BillingTable.customerId],
         totalAmount = Money(
-                value = this[BillTable.value],
-                currency = Currency.valueOf(this[BillTable.currency])
+                value = this[BillingTable.value],
+                currency = Currency.valueOf(this[BillingTable.currency])
         ),
-        timestamp = this[BillTable.timestamp]
+        timestamp = this[BillingTable.timestamp]
 )
 
 

@@ -25,7 +25,7 @@ import java.sql.Connection
 
 fun main() {
     // The tables to create in the database.
-    val tables = arrayOf(InvoiceTable, CustomerTable, BillTable)
+    val tables = arrayOf(InvoiceTable, CustomerTable, BillingTable)
 
     // Connect to the database and create the needed tables. Drop any existing data.
     val db = Database
@@ -49,12 +49,14 @@ fun main() {
     // Insert example data in the database.
     setupInitialData(customerDal = customerDal, invoiceDal = invoiceDal)
 
-    // Get third parties
-    val paymentProvider = getPaymentProvider()
+
 
     // Create core services
     val invoiceService = InvoiceService(dal = invoiceDal)
     val customerService = CustomerService(dal = customerDal)
+
+    // Get third parties
+    val paymentProvider = getPaymentProvider(true, customerService, invoiceService )
 
     // This is _your_ billing service to be included where you see fit
     val billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService, invoiceService = invoiceService)

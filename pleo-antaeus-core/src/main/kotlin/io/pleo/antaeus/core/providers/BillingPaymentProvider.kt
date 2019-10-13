@@ -2,14 +2,23 @@ package io.pleo.antaeus.core.providers
 
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.core.utils.convertCurrency
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
+import mu.KotlinLogging
 
-class BillingPaymentProvider(customerService: CustomerService): PaymentProvider {
+class BillingPaymentProvider(
+        customerService: CustomerService,
+        invoiceService: InvoiceService
+        ): PaymentProvider {
 
     private val customerService = customerService
+    private val invoiceService = invoiceService
 
+    companion object {
+        private val logger = KotlinLogging.logger {}
+    }
 
     override fun charge(invoice: Invoice, customer: Customer): Boolean {
         var customerCurrency = customer.balance.currency
@@ -20,21 +29,14 @@ class BillingPaymentProvider(customerService: CustomerService): PaymentProvider 
             customerBalance.value = customerBalance.value - invoiceAmount.value
             customer.balance = convertCurrency(currencyFrom = customerBalance.currency, currencyTo = customerCurrency, amount = customerBalance.value)
             customerService.updateCustomer(customer)
-          println("last balance: ${customer.balance.value} invoice: ${invoice.amount.value}" )
+            invoiceService.payInvoice(invoice)
+            logger.info("Invoice ${invoice.id} charged successfully with invoice amount: ${invoice.amount.value} and customers balance is: ${customer.balance.value}")
             true
         }
         else {
+            logger.info("Invoice ${invoice.id} didn't charged with invoice amount: ${invoice.amount.value} and customers balance is: ${customer.balance.value}")
             false
         }
     }
 
-    fun chargeCustomer(invoice: Invoice, customer: Customer): Customer {
-        var customerCurrency = customer.balance.currency
-        var invoiceAmount = convertCurrency(currencyFrom = invoice.amount.currency, amount = invoice.amount.value)
-        var customerBalance = convertCurrency(currencyFrom = customer.balance.currency, amount = customer.balance.value)
-        customerBalance.value= customerBalance.value - invoiceAmount.value
-        customer.balance = convertCurrency(currencyFrom = customer.balance.currency, currencyTo = customerCurrency, amount = customerBalance.value)
-
-        return customer
-    }
 }

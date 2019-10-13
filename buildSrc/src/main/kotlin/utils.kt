@@ -15,6 +15,8 @@ fun Project.kotlinProject() {
 
         // Logging
         "implementation"("org.slf4j:slf4j-simple:1.7.25")
+        "implementation" ("log4j:log4j:1.2.17")
+
         "implementation"("io.github.microutils:kotlin-logging:1.6.22")
 
         // Mockk

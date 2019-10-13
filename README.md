@@ -79,3 +79,76 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+
+# Solution
+
+### Design choices
+I choose to have a designated table Billings in the database. 
+In this table the Billing of each customer is stored for every month.
+Even when a customer have zero expenses a billing is created for logging and archiving purposes.
+
+
+
+##Components
+ 
+### Models
+The Model Layer 
+
+* Invoice
+    * id
+    
+* Customer
+    * id
+    * balance
+        * value
+        * currency
+* Billing
+    * id
+    * customerId
+    * totalAmount
+        * value
+        * currency
+
+### Data Access Layer
+The AntaeusDal is divided into three different DAL files, each for every db table.
+
+### Database 
+The EER diagram of the Antaeus Database:
+
+![alt text](./AntaeusDB.png)
+
+###BillingService
+
+### Scheduler
+
+###CurrencyConverter
+
+###BillingServicePaymentProvider
+ On payment day (1st of each month at 12:00) for every customer all the pending invoices are checked. If the customer have enough balance, he is charged. 
+ The invoice status is changed to PAID and the value of the invoice is removed from his balance.
+
+
+### REST API
+The second version (v2) of the api was implemented. The new api calls are:
+
+* **POST:**
+    ```
+    /v2/payments       //iniate monthly payment(billing) service for all customers
+    /v2/payments/{id}  //iniate monthly payment(billing) service for customer with specific id
+  ```
+* **GET:**
+    ```
+    /v2/billings        //get all billings that have been printed
+    /v2/billings/{id}   //get billing with specific id
+  ```
+
+
+
+## Testing
+Both unit and integration tests implemented
+Almost every function of the core module has its own unit test.
+ 
+
+##Conclusion
+Antaeus was pretty mighty but as he couldn't beat Hercules, he couldn't run away from the even mightier Pleo's payment service. 
+At the first of every month he has to pay his pending invoices!
