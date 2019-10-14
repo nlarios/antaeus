@@ -25,7 +25,7 @@ class PaymentSchedulerIntegrationTest {
 
 
     private val paymentScheduler = PaymentScheduler()
-    private val db:Database
+    private val db: Database
     private val billingService: BillingService
     private val tables = arrayOf(InvoiceTable, CustomerTable, BillingTable)
 
@@ -52,7 +52,7 @@ class PaymentSchedulerIntegrationTest {
 
         val invoiceService = InvoiceService(dal = invoiceDal)
         val customerService = CustomerService(dal = customerDal)
-        val paymentProvider = BillingPaymentProvider(customerService, invoiceService )
+        val paymentProvider = BillingPaymentProvider(customerService, invoiceService)
 
         // This is _your_ billing service to be included where you see fit
         billingService = BillingService(paymentProvider = paymentProvider, dal = billingDal, customerService = customerService, invoiceService = invoiceService)
@@ -66,23 +66,24 @@ class PaymentSchedulerIntegrationTest {
         @AfterAll
         fun cleanUpTest() {
             val tables = arrayOf(InvoiceTable, CustomerTable, BillingTable)
-            Database
-                    .connect("jdbc:sqlite:C:\\Users\\nikos\\docker\\volumes\\pleo-antaeus-sqlite\\data.db", "org.sqlite.JDBC").also {
-                TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
-                transaction(it) {
-                    // Drop all existing tables to ensure a clean slate on each run
-                    SchemaUtils.drop(*tables)
-                    // Create all tables
-                }
-            }
+            Database   //path for local builds jdbc:sqlite:C:\Users\nikos\docker\volumes\pleo-antaeus-sqlite\data.db
+                    .connect("jdbc:sqlite:/tmp/data.db", "org.sqlite.JDBC")
+                    .also {
+                        TransactionManager.manager.defaultIsolationLevel = Connection.TRANSACTION_SERIALIZABLE
+                        transaction(it) {
+                            // Drop all existing tables to ensure a clean slate on each run
+                            SchemaUtils.drop(*tables)
+                            // Create all tables
+                        }
+                    }
         }
     }
 
     //  Main test for scheduled billing
     @Test
-    fun `test scheduled payment (billing) for all customers`(){
+    fun `test scheduled payment (billing) for all customers`() {
         //schedule billing for the next second
-        paymentScheduler.scheduleNextPayment({ billingService.billAllCustomers()}, calculateTestDate())
+        paymentScheduler.scheduleNextPayment({ billingService.billAllCustomers() }, calculateTestDate())
         //wait for a second to run payment service
         Thread.sleep(1_000)
         val billings = billingService.fetchAllBillings()
@@ -96,13 +97,12 @@ class PaymentSchedulerIntegrationTest {
     //Next payment date calculation test. It will fail if it runs after 2019-11-01 12:00:00:000. The expected date should change!
     @Test
     fun `check next first of month`() {
-        val expectedDate =  SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").parse("2019-11-01 12:00:00:000")
+        val expectedDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS").parse("2019-11-01 12:00:00:000")
         var date = paymentScheduler.calculateNextBillingDate()
         assert(expectedDate == date) {
             "Next billing date calculation failed. Is not 2019-11-01 12:00:00:000"
         }
     }
-
 
 
 }
