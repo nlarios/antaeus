@@ -74,14 +74,14 @@ The Model Layer changes:
 ```
 * Customer
     * id
-    * balance       //Each customer have balance
+    * balance       //Each customer have balance, money left to spend
         * value
         * currency
 
 * Billing
     * id
     * customerId
-    * totalAmount    //the total amount of every invoice that have to pay in the specific payment
+    * totalAmount    //the total amount of all invoices that customer have to pay in the specific payment
         * value
         * currency
 
@@ -129,12 +129,14 @@ For transactions with the Billing Table.  New functions implemented:
 * All the business logic for the billing is inside this method. The charging, the calculation of the total amount of the billing and the update of the database
 
 Steps of billing service:
+```
 * For each customer get the pending invoices from the database
 * Call the charge method from the paymentProvider
 * If the customer is charged successfully the amount of the invoice is added to the totalAmount of the customer's billing
 * The totalAmount of the billing for the customer is calculated
 * A billing instance is created and is stored in the database.
     (Even if the totalAmount of billing is zero is still stored in the database for logging and archive reasons)
+```
 
 ### Scheduler
 The scheduler class is:
@@ -152,14 +154,14 @@ and the date, where it calculates the next payment day.
 
 Having the date as a parameter is also helpful for the testing of the sceduler
 
-Steps:
-
+Steps of scheduleNextPayment:
+```
 * Firstly the scheduler calculates the next payment date (1st of next month). 
 * When the time comes, the scheduler is triggered and the BillingAction method that was defined
 in the BillingServices is initialized. 
 * It fetches all the pending invoices for each customer, check if the customer is able to pay for them, calculate the totalAmount for payment and creates the Billing for each Customer
 * Finally, using recursion it reschedules the BillingService for the next month. Recalculate the 1st of next month and set the scheduler.
-
+```
 ### CurrencyConverter
 In case that the invoices are in different currency than the customer's balance a currencyConverter is used.
 The base currency in which the currencies are  converted is DKK. After the calculations the totalAmount is converted back to the customer's currency 
@@ -171,12 +173,13 @@ Functionality of `charge` method:
  * On payment day for every customer all the pending invoices are checked by charge method. 
  
  Steps of charge method:
-  * If balance of customer is different than the one of the invoice, both are converted to the base currency
+ ```
+  * If the currency of the balance of the customer is different than the one of the invoice, both are converted to the base currency
   * If the customer have enough balance, he is charged. T
   * The invoice status is changed to PAID and the value of the invoice is removed from his balance.
   * Customer balance and the status of the invoice are updated in the database
   * The method returns true if the invoice was successfully paid and the customer was charged
-
+```
 
 ### REST API
 The second version (v2) of the api was implemented. The new api calls are:
@@ -212,4 +215,4 @@ Integration test for scheduler. It runs the scheduler for specific date, one sec
 Antaeus was pretty mighty but as he couldn't beat Hercules, he couldn't run away from the even mightier Pleo's payment service. 
 At the first of every month he has to pay his pending invoices! 
 
-Oh WAIT! Was Antaeus the one who is actually charging us? Now I gοt it, scratch the last one! 
+Oh WAIT! Is Antaeus the one who is actually charging us? Now I gοt it, scratch the last one! 
