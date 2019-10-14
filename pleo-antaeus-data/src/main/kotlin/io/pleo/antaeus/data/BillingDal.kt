@@ -26,7 +26,7 @@ class BillingDal(private val db: Database) {
 
 
 
-    fun createBill(customerId: Int, totalAmount: Money, timestamp: String): Billing? {
+    fun createBilling(customerId: Int, totalAmount: Money, timestamp: String): Billing? {
         val id = transaction(db) {
             // Insert the bill and return its new id.
             BillingTable.insert {

@@ -17,32 +17,32 @@ class BillingServiceScheduler() {
     }
 
 
-    fun scheduleNextBillingTime(billingAction: (() -> Unit?),  date: Date = calculateNextBillingDate()) {
+    fun scheduleNextBilling(billingAction: ((String) -> List<Billing?>?),  date: Date = calculateNextBillingDate()) {
 //        var next  = calculateTestDate()
         logger.info("Schedule next payment for all users at $date")
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
 
             try {
-                billingAction()
+                billingAction
             }
             catch (e: Exception) {
                 logger.error("billingAction failed with exception: ${e.message}")
                 throw BillingServiceException("At multiple customers")
             }
             finally {
-                scheduleNextBillingTime(billingAction)
+                scheduleNextBilling(billingAction)
             }
         }
     }
 
-    fun scheduleNextBillingTime(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
+    fun scheduleNextBilling(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
 //        var nextTime = calculateNextBillingDate()
 //        var date = calculateTestDate()
         logger.info("Schedule next payment for user with id: $id at $date")
 
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
             billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-            scheduleNextBillingTime(billingAction, id)
+            scheduleNextBilling(billingAction, id)
         }
     }
 

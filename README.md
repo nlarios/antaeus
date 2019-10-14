@@ -8,12 +8,6 @@ Welcome to our challenge.
 
 As most "Software as a Service" (SaaS) companies, Pleo needs to charge a subscription fee every month. Our database contains a few invoices for the different markets in which we operate. Your task is to build the logic that will schedule payment of those invoices on the first of the month. While this may seem simple, there is space for some decisions to be taken and you will be expected to justify them.
 
-## Instructions
-
-Fork this repo with your solution. Ideally, we'd like to see your progression through commits, and don't forget to update the README.md to explain your thought process.
-
-Please let us know how long the challenge takes you. We're not looking for how speedy or lengthy you are. It's just really to give us a clearer idea of what you've produced in the time you decided to take. Feel free to go as big or as small as you want.
-
 ## Developing
 
 Requirements:
@@ -70,62 +64,104 @@ The code given is structured as follows. Feel free however to modify the structu
 └──
 ```
 
-### Main Libraries and dependencies
-* [Exposed](https://github.com/JetBrains/Exposed) - DSL for type-safe SQL
-* [Javalin](https://javalin.io/) - Simple web framework (for REST)
-* [kotlin-logging](https://github.com/MicroUtils/kotlin-logging) - Simple logging framework for Kotlin
-* [JUnit 5](https://junit.org/junit5/) - Testing framework
-* [Mockk](https://mockk.io/) - Mocking library
-* [Sqlite3](https://sqlite.org/index.html) - Database storage engine
-
-Happy hacking 😁!
 
 # Solution
-
-### Design choices
-I choose to have a designated table Billings in the database. 
-In this table the Billing of each customer is stored for every month.
-Even when a customer have zero expenses a billing is created for logging and archiving purposes.
-
-
 
 ##Components
  
 ### Models
-The Model Layer 
+In the Model Layer the Billing model class was added. 
+The Billing class corresponds to the billing that are created by the payment service for each customer.
 
-* Invoice
-    * id
-    
+A designated table Billings was created. 
+In this table the Billing of each customer is stored for every month, even when a customer have zero expenses a billing is created for logging and archiving purposes.
+
+In the Customer class the balance property was added. 
+(Of course Antaeus knows how much money each customer has in it's account.)
+Each Customer have a Balance. In order for a successful payment of an invoice, the balance of the customer should be greater than the invoice amount.
+
+
+The Model Layer 
 * Customer
     * id
     * balance
         * value
         * currency
+* Invoice
+    * id
+    * customerId
+    * amount
+        * value
+        * currency
+    * status
+
 * Billing
     * id
     * customerId
-    * totalAmount
+    * totalAmount &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // the total amount of every invoice that have to pay in the specific payment
         * value
         * currency
-
-### Data Access Layer
-The AntaeusDal is divided into three different DAL files, each for every db table.
 
 ### Database 
 The EER diagram of the Antaeus Database:
 
 ![alt text](./AntaeusDB.png)
 
+### Data Access Layer
+The AntaeusDal is divided into three different DAL files, each for every db table.
+####CustomerDal
+For transactions with the Customer Table:
+* fetchCustomer()
+* fetchAll()
+
+####InvoiceDal
+For transactions with the Invoice Table. New functions implemented:
+
+ * `fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus)` :
+    * Fetch all Invoices of customer with  id with the specified status 
+     
+* `fetchInvoicesByCostumer(id:Int)` :
+    * Fetch all Invoices of customer with  id
+####BillingDal
+For transactions with the Billing Table.  New functions implemented:
+    
+ * `fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus)` :
+    * Fetch all Invoices of customer with  id with the specified status 
+     
+* `fetchInvoicesByCostumer(id:Int)` :
+    * Fetch all Invoices of customer with  id
+
+
 ###BillingService
 
+`billAllCustomers`
+
+`billCustomer`
+
 ### Scheduler
+For the scheduling of the payment service the `Timer().schedule()` function is used  from the java.util.timer package.
+This function Schedules an action to be executed at the specified time.
+The method that was implemented is: 
+```
+scheduleNextBilling
+```
+Steps:
+
+* Firstly the scheduler calculates the next payment date (1st of next month). 
+* When the time comes, the scheduler is triggered and the BillingAction method that was defined
+in the BillingServices is initialized. 
+* It fetches all the pending invoices for each customer, check if the customer is able to pay for them, calculate the totalAmount for payment and creates the Billing for each Customer
+* Finally, using recursion it reschedules the BillingService for the next month. Recalculate the 1st of next month and set the scheduler.
 
 ###CurrencyConverter
+In case that the invoices are in different currency than the customer's balance a currencyConverter is used.
+The base currency in which the currencies are  converted is DKK. After the calculations the totalAmount is converted back to the customer's currency 
 
 ###BillingServicePaymentProvider
- On payment day (1st of each month at 12:00) for every customer all the pending invoices are checked. If the customer have enough balance, he is charged. 
+Functionality of `charge` method:
+ * On payment day for every customer all the pending invoices are checked by charge method. If the customer have enough balance, he is charged. 
  The invoice status is changed to PAID and the value of the invoice is removed from his balance.
+ The method returns true if the invoice was successfully paid and the customer was charged
 
 
 ### REST API
@@ -147,6 +183,7 @@ The second version (v2) of the api was implemented. The new api calls are:
 ## Testing
 Both unit and integration tests implemented
 Almost every function of the core module has its own unit test.
+
  
 
 ##Conclusion

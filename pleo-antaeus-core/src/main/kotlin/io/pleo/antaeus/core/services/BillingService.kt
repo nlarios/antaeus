@@ -24,16 +24,16 @@ class BillingService(
         return ::billCustomer
     }
 
-    private fun returnBillAllCustomer(): (() -> Unit?) {
+    private fun returnBillAllCustomer(): ((String) -> List<Billing?>?) {
         return ::billAllCustomers
     }
 
     fun scheduleBillingForCustomer(id: Int, billingServiceScheduler: BillingServiceScheduler) {
-        billingServiceScheduler.scheduleNextBillingTime(returnBillCustomer(), id)
+        billingServiceScheduler.scheduleNextBilling(returnBillCustomer(), id)
     }
 
     fun scheduleBillingForAllCustomers(billingServiceScheduler: BillingServiceScheduler) {
-        billingServiceScheduler.scheduleNextBillingTime(returnBillAllCustomer())
+        billingServiceScheduler.scheduleNextBilling(returnBillAllCustomer())
     }
 
     fun billCustomer(id: Int, timestamp: String = DateTimeFormatter.ISO_INSTANT.format(Instant.now())): Billing? {
@@ -45,14 +45,18 @@ class BillingService(
 
         var totalAmount = calculateSumOfInvoices(invoices, customer)
 
-        var billing = dal.createBill(customerId = customer.id, totalAmount = totalAmount, timestamp = timestamp)
+        var billing = dal.createBilling(customerId = customer.id, totalAmount = totalAmount, timestamp = timestamp)
         logger.info("Billing of customer extracted: $billing")
         return billing
     }
 
-    fun billAllCustomers() {
+    fun billAllCustomers(timestamp: String): List<Billing?> {
         val customers = customerService.fetchAll()
-        customers.forEach { customer -> billCustomer(customer.id) }
+        var billings: List<Billing?> = mutableListOf()
+        for (customer in customers) {
+            billings += billCustomer(customer.id,timestamp)
+        }
+        return billings
     }
 
     fun calculateSumOfInvoices(invoices: List<Invoice>, customer: Customer): Money {

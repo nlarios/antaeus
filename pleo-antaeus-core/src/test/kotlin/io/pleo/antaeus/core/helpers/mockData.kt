@@ -27,7 +27,7 @@ fun mockCustomer(
 }
 
 
-fun mockBill(
+fun mockBilling(
         id: Int = 1,
         customerId: Int = 1,
         totalAmount: Money = mockMoney(1000.toBigDecimal()),

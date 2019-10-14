@@ -22,12 +22,17 @@ class BillingPaymentProvider(
 
     override fun charge(invoice: Invoice, customer: Customer): Boolean {
         var customerCurrency = customer.balance.currency
-        var invoiceAmount = convertCurrency(currencyFrom = invoice.amount.currency, amount = invoice.amount.value)
-        var customerBalance = convertCurrency(currencyFrom = customer.balance.currency, amount = customer.balance.value)
+        var invoiceAmount = invoice.amount
+        var customerBalance = customer.balance
+        if(invoiceAmount.currency != customerBalance.currency) {
+            invoiceAmount = convertCurrency(currencyFrom = invoice.amount.currency, amount = invoice.amount.value)
+            customerBalance = convertCurrency(currencyFrom = customer.balance.currency, amount = customer.balance.value)
+        }
 
         return if(invoiceAmount.value <= customerBalance.value) {
             customerBalance.value = customerBalance.value - invoiceAmount.value
-            customer.balance = convertCurrency(currencyFrom = customerBalance.currency, currencyTo = customerCurrency, amount = customerBalance.value)
+            if(invoiceAmount.currency != customerBalance.currency)
+                customer.balance = convertCurrency(currencyFrom = customerBalance.currency, currencyTo = customerCurrency, amount = customerBalance.value)
             customerService.updateCustomer(customer)
             invoiceService.payInvoice(invoice)
             logger.info("Invoice ${invoice.id} charged successfully with invoice amount: ${invoice.amount.value} and customers balance is: ${customer.balance.value}")

@@ -1,6 +1,8 @@
 package io.pleo.antaeus.core.schedulers
 
+import io.mockk.every
 import io.mockk.mockk
+import io.pleo.antaeus.core.helpers.mockBilling
 import io.pleo.antaeus.core.services.BillingService
 import org.junit.jupiter.api.Test
 import java.text.SimpleDateFormat
@@ -15,8 +17,10 @@ import java.time.Instant
 class BillingServiceSchedulerTest {
 
     private val billingServiceScheduler = BillingServiceScheduler()
-    private val billingService = mockk<BillingService> {
+    private val expectedBillings = listOf(mockBilling(id = 1), mockBilling(2))
 
+    private val billingService = mockk<BillingService> {
+        every{ billAllCustomers("2019-10-11T17:31:41.205513800Z") } returns expectedBillings
     }
 
 
@@ -28,7 +32,7 @@ class BillingServiceSchedulerTest {
         calendar.add(Calendar.MINUTE, if (mod == 0) 10 else 10 - mod)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
-        billingServiceScheduler.scheduleNextBillingTime({ print("I m the scheduled task")}, calculateTestDate())
+        billingServiceScheduler.scheduleNextBilling({ billingService.billAllCustomers("2019-10-11T17:31:41.205513800Z")}, calculateTestDate())
 
     }
 
