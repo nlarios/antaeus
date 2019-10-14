@@ -2,16 +2,13 @@
 
 Antaeus (/ænˈtiːəs/), in Greek mythology, a giant of Libya, the son of the sea god Poseidon and the Earth goddess Gaia. He compelled all strangers who were passing through the country to wrestle with him. Whenever Antaeus touched the Earth (his mother), his strength was renewed, so that even if thrown to the ground, he was invincible. Heracles, in combat with him, discovered the source of his strength and, lifting him up from Earth, crushed him to death.
 
-Welcome to our challenge.
+Welcome to my solution! 
+
+Scroll a little and you will see my whole description. The first sections as you can see are more or less the same.
 
 ## The challenge
 
 As most "Software as a Service" (SaaS) companies, Pleo needs to charge a subscription fee every month. Our database contains a few invoices for the different markets in which we operate. Your task is to build the logic that will schedule payment of those invoices on the first of the month. While this may seem simple, there is space for some decisions to be taken and you will be expected to justify them.
-
-## Developing
-
-Requirements:
-- \>= Java 11 environment
 
 ### Building
 
@@ -21,9 +18,6 @@ Requirements:
 
 ### Running
 
-There are 2 options for running Anteus. You either need libsqlite3 or docker. Docker is easier but requires some docker knowledge. We do recommend docker though.
-
-
 *Running through docker*
 
 Install docker for your platform
@@ -32,21 +26,11 @@ Install docker for your platform
 make docker-run
 ```
 
-And run script `./docker-start.sh` 
-
-*Running Natively*
-
-Native java with sqlite (requires libsqlite3):
-
-If you use homebrew on MacOS `brew install sqlite`.
-
+And run script 
 ```
-./gradlew run
+docker-start.sh 
 ```
-
-
 ### App Structure
-The code given is structured as follows. Feel free however to modify the structure to fit your needs.
 ```
 ├── pleo-antaeus-app
 |       main() & initialization
@@ -67,25 +51,24 @@ The code given is structured as follows. Feel free however to modify the structu
 └──
 ```
 
-
 # Solution
 
-##Components
+## Components
  
 ### Models
 *Changes in models:*
 
 In the Model Layer the Billing model class was added. 
-The Billing class corresponds to the billing that are created by the payment service for each customer.
+The Billing class corresponds to the billings that are created by the Billing service for each customer.
 
 A designated table Billings was created. 
-In this table the Billing of each customer is stored for every month, even when a customer have zero expenses a billing is created for logging and archiving purposes.
+In this table the Billing of each customer is stored for every month.
 
 In the Customer class the balance property was added. 
 (Of course Antaeus knows how much money each customer has in it's account.)
 Each Customer have a Balance. In order for a successful payment of an invoice, the balance of the customer should be greater than the invoice amount.
 
-ExchangeRate model class was added
+ExchangeRate model class was added in order to have a singleton object of this class to have stored the rates for the currency conversion
 
 The Model Layer changes: 
 ```
@@ -145,15 +128,26 @@ For transactions with the Billing Table.  New functions implemented:
 `billCustomer(id: Int)`
 * All the business logic for the billing is inside this method. The charging, the calculation of the total amount of the billing and the update of the database
 
+Steps of billing service:
+* For each customer get the pending invoices from the database
+* Call the charge method from the paymentProvider
+* If the customer is charged successfully the amount of the invoice is added to the totalAmount of the customer's billing
+* The totalAmount of the billing for the customer is calculated
+* A billing instance is created and is stored in the database.
+    (Even if the totalAmount of billing is zero is still stored in the database for logging and archive reasons)
+
 ### Scheduler
-The scheduler i
-For the scheduling of the payment service the `Timer().schedule()` function is used  from the java.util.timer package.
-This function Schedules an action to be executed at the specified time.
+The scheduler class is:
+ 
+`PaymentScheduler`
+
+For the scheduling of the payment service the `Timer().schedule()` function is used from `kotlin-stdlib/kotlin.concurrent/java.util.Timer/` schedule  package.
+This function schedules an action to be executed at the specified time.
 The method that was implemented is: 
 ```
 scheduleNextPayment(billingAction: ((String) -> List<Billing?>?), date: Date = calculateNextBillingDate())
 ```
-This method has as a parameter the billing action with is the main Billing method from BillingService.
+This method has as a parameter the billing action with is the main Billing method from BillingService (BillAllCustomers).
 and the date, where it calculates the next payment day.
 
 Having the date as a parameter is also helpful for the testing of the sceduler
@@ -180,8 +174,8 @@ Functionality of `charge` method:
   * If balance of customer is different than the one of the invoice, both are converted to the base currency
   * If the customer have enough balance, he is charged. T
   * The invoice status is changed to PAID and the value of the invoice is removed from his balance.
-  * Customer balance and the status of the invoice are 
- The method returns true if the invoice was successfully paid and the customer was charged
+  * Customer balance and the status of the invoice are updated in the database
+  * The method returns true if the invoice was successfully paid and the customer was charged
 
 
 ### REST API
@@ -216,4 +210,6 @@ Integration test for scheduler. It runs the scheduler for specific date, one sec
 
 ## Conclusion
 Antaeus was pretty mighty but as he couldn't beat Hercules, he couldn't run away from the even mightier Pleo's payment service. 
-At the first of every month he has to pay his pending invoices!
+At the first of every month he has to pay his pending invoices! 
+
+Oh WAIT! Was Antaeus the one who is actually charging us? Now I gοt it, scratch the last one! 
