@@ -32,6 +32,8 @@ Install docker for your platform
 make docker-run
 ```
 
+And run script `./docker-start.sh` 
+
 *Running Natively*
 
 Native java with sqlite (requires libsqlite3):
@@ -53,6 +55,7 @@ The code given is structured as follows. Feel free however to modify the structu
 |       This is probably where you will introduce most of your new code.
 |       Pay attention to the PaymentProvider and BillingService class.
 |
+|
 ├── pleo-antaeus-data
 |       Module interfacing with the database. Contains the database models, mappings and access layer.
 |
@@ -70,6 +73,8 @@ The code given is structured as follows. Feel free however to modify the structu
 ##Components
  
 ### Models
+*Changes in models:*
+
 In the Model Layer the Billing model class was added. 
 The Billing class corresponds to the billing that are created by the payment service for each customer.
 
@@ -80,27 +85,27 @@ In the Customer class the balance property was added.
 (Of course Antaeus knows how much money each customer has in it's account.)
 Each Customer have a Balance. In order for a successful payment of an invoice, the balance of the customer should be greater than the invoice amount.
 
+ExchangeRate model class was added
 
-The Model Layer 
+The Model Layer changes: 
+```
 * Customer
     * id
-    * balance
+    * balance       //Each customer have balance
         * value
         * currency
-* Invoice
-    * id
-    * customerId
-    * amount
-        * value
-        * currency
-    * status
 
 * Billing
     * id
     * customerId
-    * totalAmount &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // the total amount of every invoice that have to pay in the specific payment
+    * totalAmount    //the total amount of every invoice that have to pay in the specific payment
         * value
         * currency
+
+ * ExcangeRate
+    *currency       //the base currency in which all the conversions are made
+    *rates (Map)    // the rates corresponding to the base currency
+```
 
 ### Database 
 The EER diagram of the Antaeus Database:
@@ -109,12 +114,12 @@ The EER diagram of the Antaeus Database:
 
 ### Data Access Layer
 The AntaeusDal is divided into three different DAL files, each for every db table.
-####CustomerDal
+#### CustomerDal
 For transactions with the Customer Table:
 * fetchCustomer()
 * fetchAll()
 
-####InvoiceDal
+#### InvoiceDal
 For transactions with the Invoice Table. New functions implemented:
 
  * `fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus)` :
@@ -122,7 +127,7 @@ For transactions with the Invoice Table. New functions implemented:
      
 * `fetchInvoicesByCostumer(id:Int)` :
     * Fetch all Invoices of customer with  id
-####BillingDal
+#### BillingDal
 For transactions with the Billing Table.  New functions implemented:
     
  * `fetchInvoicesByCostumerAndStatus(id: Int, status: InvoiceStatus)` :
@@ -132,19 +137,27 @@ For transactions with the Billing Table.  New functions implemented:
     * Fetch all Invoices of customer with  id
 
 
-###BillingService
+### BillingService
 
-`billAllCustomers`
+`billAllCustomers()`
+* Basically a for loop for all customer that calls billCustomer method
 
-`billCustomer`
+`billCustomer(id: Int)`
+* All the business logic for the billing is inside this method. The charging, the calculation of the total amount of the billing and the update of the database
 
 ### Scheduler
+The scheduler i
 For the scheduling of the payment service the `Timer().schedule()` function is used  from the java.util.timer package.
 This function Schedules an action to be executed at the specified time.
 The method that was implemented is: 
 ```
-scheduleNextBilling
+scheduleNextPayment(billingAction: ((String) -> List<Billing?>?), date: Date = calculateNextBillingDate())
 ```
+This method has as a parameter the billing action with is the main Billing method from BillingService.
+and the date, where it calculates the next payment day.
+
+Having the date as a parameter is also helpful for the testing of the sceduler
+
 Steps:
 
 * Firstly the scheduler calculates the next payment date (1st of next month). 
@@ -153,14 +166,21 @@ in the BillingServices is initialized.
 * It fetches all the pending invoices for each customer, check if the customer is able to pay for them, calculate the totalAmount for payment and creates the Billing for each Customer
 * Finally, using recursion it reschedules the BillingService for the next month. Recalculate the 1st of next month and set the scheduler.
 
-###CurrencyConverter
+### CurrencyConverter
 In case that the invoices are in different currency than the customer's balance a currencyConverter is used.
 The base currency in which the currencies are  converted is DKK. After the calculations the totalAmount is converted back to the customer's currency 
 
-###BillingServicePaymentProvider
+For the conversion of currencies ExchangeRateProvider is used. As an immutable object it contains all the different rates corresponding to the base currency (DKK)
+
+### BillingServicePaymentProvider
 Functionality of `charge` method:
- * On payment day for every customer all the pending invoices are checked by charge method. If the customer have enough balance, he is charged. 
- The invoice status is changed to PAID and the value of the invoice is removed from his balance.
+ * On payment day for every customer all the pending invoices are checked by charge method. 
+ 
+ Steps of charge method:
+  * If balance of customer is different than the one of the invoice, both are converted to the base currency
+  * If the customer have enough balance, he is charged. T
+  * The invoice status is changed to PAID and the value of the invoice is removed from his balance.
+  * Customer balance and the status of the invoice are 
  The method returns true if the invoice was successfully paid and the customer was charged
 
 
@@ -181,11 +201,19 @@ The second version (v2) of the api was implemented. The new api calls are:
 
 
 ## Testing
-Both unit and integration tests implemented
-Almost every function of the core module has its own unit test.
+Both unit and integration tests are implemented
+Almost every method of the core module has its own unit test.
 
+*Most important test classes:*
+
+* `BillingServiceTest`
+Unit tests for BillingService, billing of all customer, billing of specific customer
+* `BillingPaymentProviderTest`
+Unit test for BillingPaymentProvider charge
+* `PaymentSchedulerIntegrationTest`
+Integration test for scheduler. It runs the scheduler for specific date, one second later. It waits one second and check if the billing table has new records.
  
 
-##Conclusion
+## Conclusion
 Antaeus was pretty mighty but as he couldn't beat Hercules, he couldn't run away from the even mightier Pleo's payment service. 
 At the first of every month he has to pay his pending invoices!

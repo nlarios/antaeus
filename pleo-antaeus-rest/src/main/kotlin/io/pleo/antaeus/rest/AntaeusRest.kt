@@ -8,7 +8,7 @@ import io.javalin.Javalin
 import io.javalin.RequestLogger
 import io.javalin.apibuilder.ApiBuilder.*
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
-import io.pleo.antaeus.core.schedulers.BillingServiceScheduler
+import io.pleo.antaeus.core.schedulers.PaymentScheduler
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -24,7 +24,7 @@ class AntaeusRest(
         private val invoiceService: InvoiceService,
         private val customerService: CustomerService,
         private val billingService: BillingService,
-        private val scheduler: BillingServiceScheduler
+        private val scheduler: PaymentScheduler
 ) : Runnable {
 
     override fun run() {
@@ -84,29 +84,7 @@ class AntaeusRest(
                 }
                 //V2
                 path("v2") {
-                    path("invoices") {
-                        // URL: /rest/v1/invoices
-                        get {
-                            it.json(invoiceService.fetchAll())
-                        }
 
-                        // URL: /rest/v1/invoices/{:id}
-                        get(":id") {
-                            it.json(invoiceService.fetch(it.pathParam("id").toInt()))
-                        }
-                    }
-
-                    path("customers") {
-                        // URL: /rest/v1/customers
-                        get {
-                            it.json(customerService.fetchAll())
-                        }
-
-                        // URL: /rest/v1/customers/{:id}
-                        get(":id") {
-                            it.json(customerService.fetch(it.pathParam("id").toInt()))
-                        }
-                    }
                     path("payments") {
                         post {
                             billingService.scheduleBillingForAllCustomers(scheduler)
@@ -133,20 +111,6 @@ class AntaeusRest(
 
                     }
                 }
-
-                path("test") {
-                    path("payment") {
-                        post {
-                            billingService.scheduleBillingForAllCustomers(scheduler)
-                            it.json(HttpStatus.ACCEPTED_202)
-                        }
-                        post(":id") {
-                            billingService.scheduleBillingForCustomer(it.pathParam("id").toInt(), scheduler)
-                            it.json(HttpStatus.ACCEPTED_202)
-                        }
-                    }
-                }
-
 
             }
         }

@@ -24,6 +24,8 @@ class BillingPaymentProvider(
         var customerCurrency = customer.balance.currency
         var invoiceAmount = invoice.amount
         var customerBalance = customer.balance
+
+        //if invoice have different currency
         if(invoiceAmount.currency != customerBalance.currency) {
             invoiceAmount = convertCurrency(currencyFrom = invoice.amount.currency, amount = invoice.amount.value)
             customerBalance = convertCurrency(currencyFrom = customer.balance.currency, amount = customer.balance.value)
@@ -31,10 +33,15 @@ class BillingPaymentProvider(
 
         return if(invoiceAmount.value <= customerBalance.value) {
             customerBalance.value = customerBalance.value - invoiceAmount.value
+
+            //change currency back to customers's
             if(invoiceAmount.currency != customerBalance.currency)
                 customer.balance = convertCurrency(currencyFrom = customerBalance.currency, currencyTo = customerCurrency, amount = customerBalance.value)
+
+            // Store Data to database
             customerService.updateCustomer(customer)
             invoiceService.payInvoice(invoice)
+
             logger.info("Invoice ${invoice.id} charged successfully with invoice amount: ${invoice.amount.value} and customers balance is: ${customer.balance.value}")
             true
         }

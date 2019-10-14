@@ -9,11 +9,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 class InvoiceServiceTest {
-    private val expectedInvoices = listOf(mockInvoice())
+    private val expectedInvoices = listOf(mockInvoice(1,1),mockInvoice(2,1))
 
 
     private val dal = mockk<InvoiceDal> {
         every { fetchInvoice(404) } returns null
+        every { fetchInvoicesByCustomer(1) } returns listOf(mockInvoice(1,1),mockInvoice(2,1))
+        every { fetchInvoicesByCustomer(404) } returns emptyList()
     }
 
     private val invoiceService = InvoiceService(dal = dal)
@@ -38,4 +40,6 @@ class InvoiceServiceTest {
             "Fetching Invoices of specific Customer failed"
         }
     }
+
+
 }

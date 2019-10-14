@@ -3,6 +3,8 @@ package io.pleo.antaeus.core.helpers
 import io.pleo.antaeus.models.*
 import java.math.BigDecimal
 
+// Helper methods for mocking data
+
 fun mockInvoice(
         id: Int = 1,
         customerId: Int = 1,

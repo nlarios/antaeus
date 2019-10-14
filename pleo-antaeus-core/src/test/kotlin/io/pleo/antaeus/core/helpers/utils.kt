@@ -6,7 +6,9 @@ import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.data.CustomerDal
 import io.pleo.antaeus.data.InvoiceDal
 import io.pleo.antaeus.models.*
+import io.pleo.antaeus.models.Currency
 import java.math.BigDecimal
+import java.util.*
 import kotlin.random.Random
 
 // This will create all schemas and setup initial data
@@ -34,4 +36,12 @@ internal fun setupInitialData(customerDal: CustomerDal, invoiceDal: InvoiceDal) 
     }
 }
 
-// This is the mocked instance of the payment provider
+//helper method for testing payments scheduler. It mock a date a second later
+internal fun calculateTestDate(): Date {
+    val calendar = Calendar.getInstance()
+
+    calendar.add(Calendar.MINUTE, 0)
+    calendar.add(Calendar.SECOND, 1)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.time
+}

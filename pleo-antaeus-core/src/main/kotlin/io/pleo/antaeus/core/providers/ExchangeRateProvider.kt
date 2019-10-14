@@ -4,6 +4,7 @@ import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.ExchangeRate
 import java.math.BigDecimal
 
+//Singleton object for exchange Rate based on DKK currency
 object ExchangeRateProvider {
 
     val exchangeRate = ExchangeRate(

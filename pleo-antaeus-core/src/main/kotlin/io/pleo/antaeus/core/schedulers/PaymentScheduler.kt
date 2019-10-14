@@ -10,46 +10,44 @@ import java.util.*
 import kotlin.concurrent.schedule
 import java.util.Calendar
 
-
-class BillingServiceScheduler() {
+//Scheduler class
+class PaymentScheduler() {
     companion object {
         private val logger = KotlinLogging.logger {}
     }
 
-
-    fun scheduleNextBilling(billingAction: ((String) -> List<Billing?>?),  date: Date = calculateNextBillingDate()) {
-//        var next  = calculateTestDate()
+    // schedule next payment for all customers
+    fun scheduleNextPayment(billingAction: ((String) -> List<Billing?>?), date: Date = calculateNextBillingDate()) {
         logger.info("Schedule next payment for all users at $date")
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
 
             try {
-                billingAction
-            }
-            catch (e: Exception) {
-                logger.error("billingAction failed with exception: ${e.message}")
+                billingAction(DateTimeFormatter.ISO_INSTANT.format(date.toInstant()))
+            } catch (e: Exception) {
+                logger.error("billingAction for all customers failed with exception: ${e.message}")
                 throw BillingServiceException("At multiple customers")
-            }
-            finally {
-                scheduleNextBilling(billingAction)
+            } finally {
+                scheduleNextPayment(billingAction)
             }
         }
     }
 
-    fun scheduleNextBilling(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
-//        var nextTime = calculateNextBillingDate()
-//        var date = calculateTestDate()
+    fun scheduleNextPayment(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
         logger.info("Schedule next payment for user with id: $id at $date")
 
         Timer("SettingUpBillingSchedule", false).schedule(time = date) {
-            billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
-            scheduleNextBilling(billingAction, id)
+            try {
+                billingAction(id, DateTimeFormatter.ISO_INSTANT.format(Instant.now()))
+            } catch (e: Exception) {
+                logger.error("billingAction for customer $id failed with exception: ${e.message}")
+                throw BillingServiceException("At multiple customers")
+            } finally {
+                scheduleNextPayment(billingAction, id)
+            }
         }
     }
 
     fun calculateNextBillingDate(): Date {
-        val sdf = SimpleDateFormat("dd/M/yyyy hh:mm:ss")
-        val currentDateString = sdf.format(Date())
-        val currentDate = Date()
         val calendar = Calendar.getInstance()
         calendar.add(Calendar.MONTH, 1)
         calendar.set(Calendar.DATE, calendar.getActualMinimum(Calendar.DAY_OF_MONTH))
@@ -61,14 +59,4 @@ class BillingServiceScheduler() {
         return calendar.time
     }
 
-    fun calculateTestDate(): Date {
-        val calendar = Calendar.getInstance()
-        val unroundedMinutes = calendar.get(Calendar.MINUTE)
-        // mod = unroundedMinutes % 10
-        calendar.add(Calendar.MINUTE, 1)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
-        //println(calendar.time)
-        return calendar.time
-    }
 }

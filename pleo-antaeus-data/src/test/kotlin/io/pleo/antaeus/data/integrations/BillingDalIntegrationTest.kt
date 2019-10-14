@@ -15,8 +15,8 @@ import java.sql.Connection
 
 class BillingDalIntegrationTest {
 
-    private val db:Database
-    private val expectedBill = Billing(1, 1, Money(value=240.00.toBigDecimal(), currency= Currency.DKK),"2019-10-11T17:31:41.205513800Z")
+    private val db: Database
+    private val expectedBill = Billing(1, 1, Money(value = 240.00.toBigDecimal(), currency = Currency.DKK), "2019-10-11T17:31:41.205513800Z")
 
     init {
         val tables = arrayOf(InvoiceTable, CustomerTable, BillingTable)
@@ -35,11 +35,11 @@ class BillingDalIntegrationTest {
                 }
     }
 
-    private val billingDal = BillingDal(db =db )
+    private val billingDal = BillingDal(db = db)
 
     @Test
     fun `create bill`() {
-        val bill = billingDal.createBill(1, Money(value=240.00.toBigDecimal(), currency= Currency.DKK),"2019-10-11T17:31:41.205513800Z")
+        val bill = billingDal.createBilling(1, Money(value = 240.00.toBigDecimal(), currency = Currency.DKK), "2019-10-11T17:31:41.205513800Z")
         print(bill)
         assert(bill == expectedBill) {
             "Bill creation failed"

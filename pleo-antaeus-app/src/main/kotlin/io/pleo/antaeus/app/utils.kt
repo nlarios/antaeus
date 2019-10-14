@@ -34,7 +34,7 @@ internal fun setupInitialData(customerDal: CustomerDal, invoiceDal: InvoiceDal) 
     }
 }
 
-// This is the mocked instance of the payment provider
+// Mocked instance of payment provider or instantiate the real deal
 internal fun getPaymentProvider(type: Boolean, customerService: CustomerService, invoiceService: InvoiceService): PaymentProvider {
     if (type) {
         return BillingPaymentProvider(customerService, invoiceService)

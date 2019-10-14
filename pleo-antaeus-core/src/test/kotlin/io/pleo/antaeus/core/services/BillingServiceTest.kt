@@ -10,6 +10,7 @@ import io.pleo.antaeus.models.Currency
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
 import io.pleo.antaeus.models.Money
+import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.ZoneId
@@ -33,7 +34,6 @@ class BillingServiceTest {
         every { createBilling(1, Money(value = 240.toBigDecimal().setScale(2), currency = Currency.DKK), "2019-10-11T17:31:41.205513800Z") } returns expectedBilling
         every { createBilling(1, Money(value = 1999.92.toBigDecimal().setScale(2), currency = Currency.EUR), "2019-10-11T17:31:41.205513800Z") } returns mockBilling(1, totalAmount = mockMoney(value = 1999.92.toBigDecimal().setScale(2), currency = Currency.EUR))
         every { createBilling(2, Money(value = 1999.92.toBigDecimal().setScale(2), currency = Currency.EUR), "2019-10-11T17:31:41.205513800Z") } returns mockBilling(2, totalAmount = mockMoney(value = 1999.92.toBigDecimal().setScale(2), currency = Currency.EUR))
-
     }
 
     private val customerService = mockk<CustomerService> {
@@ -77,18 +77,18 @@ class BillingServiceTest {
         }
     }
 
+    //billAllCustomer method test
     @Test
-    fun `check billing for every costumer`() {
+    fun `check billings for all costumer`() {
         val instantExpected ="2019-10-11T17:31:41.205513800Z"
-        val clock = Clock.fixed(Instant.parse(instantExpected), ZoneId.of("UTC"))
-//        val instant = Instant.now(clock)
-
         val actualBillings = billingService.billAllCustomers(instantExpected)
         assert(actualBillings == expectedBillings) {
             "Calculation of all billings for all customers failed"
         }
     }
 
+
+    //billCustomer method test
     @Test
     fun `check billing of specific costumer`() {
         val actualBilling = billingService.billCustomer(id = 1, timestamp = "2019-10-11T17:31:41.205513800Z")
@@ -97,10 +97,12 @@ class BillingServiceTest {
             assert(expectedBilling.id == actualBilling.id && expectedBilling.totalAmount == actualBilling.totalAmount) {
                 "Billing of specific customer by id failed"
             }
-        } else
+        }
+        else {
             assert(false) {
                 "Billing is null"
             }
+        }
     }
 
 }
