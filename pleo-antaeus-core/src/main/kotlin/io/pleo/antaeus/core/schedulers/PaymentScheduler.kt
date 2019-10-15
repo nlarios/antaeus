@@ -32,6 +32,7 @@ class PaymentScheduler() {
         }
     }
 
+    // schedule next payment for one customers
     fun scheduleNextPayment(billingAction: ((Int, timestamp: String) -> Billing?), id: Int, date: Date = calculateNextBillingDate()) {
         logger.info("Schedule next payment for user with id: $id at $date")
 

@@ -43,7 +43,6 @@ fun main() {
             }
 
     // Set up data access layer.
-//    val dal = AntaeusDal(db = db)
     val customerDal = CustomerDal(db = db)
     val invoiceDal = InvoiceDal(db = db)
     val billingDal = BillingDal(db = db)
