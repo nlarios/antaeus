@@ -47,7 +47,7 @@ docker-start.sh
 
 # Solution
 
-The challenge was completed and a payment service that will run at the first day of each month was implemented. The scheduling of the billing service will begun once you started the app. 
+The challenge was completed and a payment service that will run at the first day of each month was implemented. The scheduling of the billing service will begin once you started the app. 
 There is also an option to initiate the scheduled payment service by a Rest call.
  
  More info about the payment service and the billing process is available on the sections [BillingService](#BillingService) and [Scheduler](#Scheduler).
