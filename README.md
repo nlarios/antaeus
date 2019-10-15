@@ -2,7 +2,7 @@
 
 Welcome to my solution! 
 
-Bellow you can see my whole description. The first sections as you can see are more or less the same.
+Bellow you can find my whole description. The first sections as you can see are more or less the same.
 
 ### Building
 
